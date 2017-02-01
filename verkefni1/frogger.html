@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+</head>
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute vec4 vPosition;
+
+varying vec4 fColor;
+uniform float fLoc;
+
+
+void
+main()
+{
+    gl_PointSize = 5.0;
+    gl_Position = vPosition;
+
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 fColor;
+uniform vec4 rcolor;
+
+void
+main()
+{
+    gl_FragColor = rcolor;
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="frogger.js"></script>
+
+<body>
+  <div class="container-fluid">
+    <canvas id="gl-canvas" width="700" height="700">
+    Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+    <h1 class = "results"></h1><br>
+    <button type = "button" class = "btn btn-primary" onclick="reloadPage()">New game?</button>
+  </div>
+</body>
+</html>

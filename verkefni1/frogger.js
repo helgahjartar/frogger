@@ -32,6 +32,8 @@ var white = vec4(1.0, 1.0, 1.0, 1.0);
 
 var score = 0;
 var crash = false;
+var hitWall = false;
+
 
 window.onload = function init()
 {
@@ -133,17 +135,17 @@ var sidewalks = {
 var lanes = {
 
   vertices1 : [
-      vec2(  1.0,  0.25 ),
-      vec2(  1.0, 0.24 ),
-      vec2( -1.0, 0.24 ),
-      vec2( -1.0,  0.25 )
+      vec2(  1.0,  0.24 ),
+      vec2(  1.0, 0.23 ),
+      vec2( -1.0, 0.23 ),
+      vec2( -1.0,  0.24 )
   ],
 
   vertices2 : [
-    vec2(  -1.0, -0.15 ),
-    vec2(  -1.0, -0.16 ),
-    vec2(  1.0, -0.16 ),
-    vec2(  1.0,  -0.15 )
+    vec2(  -1.0, -0.17 ),
+    vec2(  -1.0, -0.18 ),
+    vec2(  1.0, -0.18 ),
+    vec2(  1.0,  -0.17 )
   ],
 
 
@@ -171,57 +173,73 @@ var frogger = {
     direction : { up : false, down : false },
     crash : false,
     lanes : {lane3 : false, lane2 : false, lane1 : false},
-
+    position : vec2(0.0,0.0),
+    radius : -0.85,
+    crossedUpper: false,
 
     vertices : [
-      vec2( -0.56, -1.0 ),
-      vec2( -0.5,  -0.85 ),
-      vec2( -0.44, -1.0 )
+      vec2( -0.56, -0.8 ),
+      vec2( -0.5,  -0.65 ),
+      vec2( -0.44, -0.8 )
     ],
 
     updateFrogger : function() {
       var x = 0, y = 0;
 
-      if(keyDown(37)) x -= 0.015;
+      // Set x and y values based on key pressed
+      // Return if wall is hit
+      if(keyDown(37)){
+        if (this.vertices[0][0] - 0.015 < -1) return;
+        x -= 0.015;
+      }
       if(keyDown(38)) {
+        if (this.vertices[1][1] + 0.015 > 1) return;
         y += 0.015;
         this.direction.up = true;
         this.direction.down = false;
       }
       if(keyDown(40)) {
+        if (this.vertices[1][1] - 0.015 < -1) return;
         y -= 0.015;
         this.direction.down = true;
         this.direction.up = false;
       }
-      if(keyDown(39)) x += 0.015;
-
-      // Move frogger around canvas
-      for (var i = 0; i < this.vertices.length; i++) {
-        if (x !== 0 || y !== 0) {
-          this.vertices[i][0] += x;
-          this.vertices[i][1] += y;
-          console.log(this.vertices[i][0]);
-          console.log(this.vertices[i][1]);
-        }
+      if(keyDown(39)) {
+        if (this.vertices[2][0] + 0.015 > 1) return;
+        x += 0.015;
       }
 
-      //Calculate score
-      if (this.vertices[0][1] < 0.61) {
-        if (this.vertices[0][1] > 0.6  && this.direction.up) {
-          score++;
+        for (var i = 0; i < this.vertices.length; i++) {
+            this.vertices[i][0] += x;
+            this.vertices[i][1] += y;
+            console.log(this.vertices[0][1]);
+
         }
-        if (this.vertices[1][1] > -0.72) {
-          if (this.vertices[1][1] < -0.7 && this.direction.down){
+
+
+      //Calculate score
+      if (this.crossedUpper == false){
+        if (this.vertices[0][1] < 0.60) {
+          if (this.vertices[0][1] > 0.59  && this.direction.up) {
             score++;
+            this.crossedUpper = true;
+          }
+        }
+      }
+      if (this.crossedUpper == true) {
+        if (this.vertices[0][1] > -0.60) {
+          if (this.vertices[0][1] < -0.58 && this.direction.down){
+            score++;
+            this.crossedUpper = false;
           }
         }
       }
 
       // Set direction of frogger
       if (this.vertices[0][1] < this.vertices[1][1] && this.direction.down) {
-          this.vertices[1][1] = this.vertices[1][1] - 0.3 ;
+          this.vertices[1][1] = this.vertices[1][1] - 0.3;
       } else if (this.vertices[0][1] > this.vertices[1][1] && this.direction.up) {
-            this.vertices[1][1] = this.vertices[1][1] + 0.3 ;
+            this.vertices[1][1] = this.vertices[1][1] + 0.3;
         }
 
         this.checkForCrash(cars.vertices1, this.lanes.lane1);
@@ -239,6 +257,7 @@ var frogger = {
       if (lane == true) {
         var pointerCrash = car[2][0] < pointerX && car[0][0] > pointerX;
         var leftCrash = car[2][0] < leftX && car[0][0] > leftX;
+        // var rightCrash = car[0][0] > rightX && car[2][0] < rightX;
       }
         if (pointerCrash || leftCrash) {
           crash = true;
@@ -252,7 +271,7 @@ var frogger = {
       if (this.direction.up) {
         if (-0.45 < pointerY && pointerY < -0.12) {this.lanes.lane3 = true};
         if (-0.05 < pointerY && pointerY < 0.30) {this.lanes.lane2 = true};
-        if (0.3 < pointerY && pointerY < 0.65) {this.lanes.lane1 = true};
+        if (0.3 < pointerY && pointerY < 0.63) {this.lanes.lane1 = true};
       } else if (this.direction.down) {
         if (-0.58 < pointerY && pointerY < -0.25) {this.lanes.lane3 = true};
         if (-0.18 < pointerY && pointerY < 0.15) {this.lanes.lane2 = true};
@@ -317,11 +336,11 @@ var cars = {
     // Set car speed
     for (var i = 0; i < vertices.length; i++) {
       if (vertices == this.vertices1 ) {
-        vertices[i][0] += 0.019;
+        vertices[i][0] += 0.0019;
       } else if (vertices == this.vertices2) {
-        vertices[i][0] += 0.031;
+        vertices[i][0] += 0.0031;
       } else {
-        vertices[i][0] += 0.015;
+        vertices[i][0] += 0.0015;
       }
       // Get new car in lane
       if (vertices[i][0] > 1.5) {

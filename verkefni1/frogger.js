@@ -5,11 +5,6 @@
 *   -----------------------------------
 */
 
-
-// TODO : Láta tjekka hvort kominn sé yfir götu
-//        Collission
-//        Teikna strik f stigin?
-
 var canvas;
 var gl;
 
@@ -17,7 +12,6 @@ var maxNumPoints = 200;
 var vPosition;
 var vColor;
 var bufferId;
-var colBuffer;
 var locColor;
 var modLoc;
 
@@ -29,6 +23,8 @@ var black = vec4(0.0, 0.0, 0.0, 1.0);
 var blue = vec4(0.0, 0.0, 1.0, 1.0);
 var red = vec4(1.0, 0.0, 0.0, 1.0);
 var white = vec4(1.0, 1.0, 1.0, 1.0);
+var yellow = vec4(1.0, 1.0, 0.0, 1.0);
+
 
 var score = 0;
 var crash = false;
@@ -55,10 +51,6 @@ window.onload = function init()
     bufferId = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
     gl.bufferData( gl.ARRAY_BUFFER, 8*5000, gl.DYNAMIC_DRAW );
-
-    colBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, colBuffer);
-    gl.bufferData( gl.ARRAY_BUFFER, 8*2*5000, gl.DYNAMIC_DRAW);
 
     // Associate out shader variables with our data buffer
     vPosition = gl.getAttribLocation( program, "vPosition" );
@@ -96,10 +88,10 @@ function reloadPage() {
 var sidewalks = {
 
   vertices1 : [
-      vec2(  1.0,  1.0 ),
-      vec2(  1.0, 0.6 ),
-      vec2( -1.0, 0.6 ),
-      vec2( -1.0,  1.0 )
+    vec2(  1.0,  1.0 ),
+    vec2(  1.0, 0.6 ),
+    vec2( -1.0, 0.6 ),
+    vec2( -1.0,  1.0 )
   ],
 
   vertices2 : [
@@ -109,13 +101,9 @@ var sidewalks = {
     vec2(  1.0,  -1.0 )
   ],
 
-
   render : function(vertices) {
     gl.bindBuffer( gl.ARRAY_BUFFER, bufferId );
     gl.bufferSubData( gl.ARRAY_BUFFER, 0, flatten(vertices) );
-
-    // gl.bindBuffer( gl.ARRAY_BUFFER, colBuffer);
-    // gl.bufferSubData( gl.ARRAY_BUFFER, 0, flatten(this.colors1) );
 
     // Draw sidewalks
     gl.vertexAttribPointer( vPosition, 2, gl.FLOAT, false, 0, 0 );
@@ -129,23 +117,23 @@ var sidewalks = {
   }
 }
 
-///////////////////
+//////////////////
 ///// Lanes //////
 //////////////////
 var lanes = {
 
   vertices1 : [
-      vec2(  1.0,  0.24 ),
-      vec2(  1.0, 0.23 ),
-      vec2( -1.0, 0.23 ),
-      vec2( -1.0,  0.24 )
+    vec2(  1.0, 0.24 ),
+    vec2(  1.0, 0.23 ),
+    vec2( -1.0, 0.23 ),
+    vec2( -1.0, 0.24 )
   ],
 
   vertices2 : [
     vec2(  -1.0, -0.17 ),
     vec2(  -1.0, -0.18 ),
     vec2(  1.0, -0.18 ),
-    vec2(  1.0,  -0.17 )
+    vec2(  1.0, -0.17 )
   ],
 
 
@@ -174,7 +162,6 @@ var frogger = {
     crash : false,
     lanes : {lane3 : false, lane2 : false, lane1 : false},
     position : vec2(0.0,0.0),
-    radius : -0.85,
     crossedUpper: false,
 
     vertices : [
@@ -209,25 +196,24 @@ var frogger = {
         x += 0.015;
       }
 
-        for (var i = 0; i < this.vertices.length; i++) {
-            this.vertices[i][0] += x;
-            this.vertices[i][1] += y;
-            console.log(this.vertices[0][1]);
+      // Move frogger around canvas
+      for (var i = 0; i < this.vertices.length; i++){
+        this.vertices[i][0] += x;
+        this.vertices[i][1] += y;
+      }
 
-        }
 
-
-      //Calculate score
+      // Calculate score
       if (this.crossedUpper == false){
-        if (this.vertices[0][1] < 0.60) {
-          if (this.vertices[0][1] > 0.59  && this.direction.up) {
+        if (this.vertices[0][1] < 0.60){
+          if (this.vertices[0][1] > 0.59  && this.direction.up){
             score++;
             this.crossedUpper = true;
           }
         }
       }
-      if (this.crossedUpper == true) {
-        if (this.vertices[0][1] > -0.60) {
+      if (this.crossedUpper == true){
+        if (this.vertices[0][1] > -0.60){
           if (this.vertices[0][1] < -0.58 && this.direction.down){
             score++;
             this.crossedUpper = false;
@@ -236,11 +222,11 @@ var frogger = {
       }
 
       // Set direction of frogger
-      if (this.vertices[0][1] < this.vertices[1][1] && this.direction.down) {
+      if (this.vertices[0][1] < this.vertices[1][1] && this.direction.down){
           this.vertices[1][1] = this.vertices[1][1] - 0.3;
       } else if (this.vertices[0][1] > this.vertices[1][1] && this.direction.up) {
-            this.vertices[1][1] = this.vertices[1][1] + 0.3;
-        }
+          this.vertices[1][1] = this.vertices[1][1] + 0.3;
+      }
 
         this.checkForCrash(cars.vertices1, this.lanes.lane1);
         this.checkForCrash(cars.vertices2, this.lanes.lane2);
@@ -248,7 +234,7 @@ var frogger = {
         this.checkForCrash(cars.vertices4, this.lanes.lane3);
     },
 
-    // Collission detection
+    // Collision detection
     checkForCrash : function (car, lane) {
       this.froggerInLane();
       var pointerX = this.vertices[1][0];
@@ -257,9 +243,9 @@ var frogger = {
       if (lane == true) {
         var pointerCrash = car[2][0] < pointerX && car[0][0] > pointerX;
         var leftCrash = car[2][0] < leftX && car[0][0] > leftX;
-        // var rightCrash = car[0][0] > rightX && car[2][0] < rightX;
+        var rightCrash = car[0][0] > rightX && car[2][0] < rightX;
       }
-        if (pointerCrash || leftCrash) {
+        if (pointerCrash || leftCrash || rightCrash) {
           crash = true;
         }
     },
@@ -332,13 +318,12 @@ var cars = {
   ],
 
   driveCar : function (vertices) {
-
     // Set car speed
     for (var i = 0; i < vertices.length; i++) {
       if (vertices == this.vertices1 ) {
         vertices[i][0] += 0.019;
       } else if (vertices == this.vertices2) {
-        vertices[i][0] += 0.026;
+        vertices[i][0] += 0.022;
       } else {
         vertices[i][0] += 0.015;
       }
@@ -360,8 +345,10 @@ var cars = {
         gl.uniform4fv( locColor, flatten(black) );
       } else if (vertices == this.vertices3) {
         gl.uniform4fv( locColor, flatten(blue) );
-      } else if (vertices == this.vertices1 || vertices == this.vertices4) {
+      } else if (vertices == this.vertices1) {
         gl.uniform4fv( locColor, flatten(red) );
+      } else {
+        gl.uniform4fv( locColor, flatten(yellow) );
       }
       gl.drawArrays( gl.TRIANGLE_FAN, 0, vertices.length );
 
@@ -398,6 +385,5 @@ function main() {
       document.querySelector('.results').innerHTML = "Watch out for the cars!";
     } else {
       document.querySelector('.results').innerHTML = "You're a winner!";
-      console.log("You won!");
     }
 }
